@@ -1,0 +1,13 @@
+project:
+    name: ivr-demo
+instance:
+    name: dev
+    runtime: nodejs16
+    region: aws.apse1
+    application-id: <app_id>
+debug:
+    name: debug
+    entrypoint:
+        - nodemon
+        - --inspect
+        - ivr.js
