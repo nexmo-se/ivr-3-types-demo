@@ -4,7 +4,13 @@ instance:
     name: dev
     runtime: nodejs16
     region: aws.apse1
-    application-id: <app_id>
+    application-id:<APPLICATION_ID>
+    capabilities: [voice]
+    environment:
+        - name: API_SECRET 
+          value: <API_SECRET>
+        - name: PRIVATE_KEY_PATH
+          value: ./private.key
 debug:
     name: debug
     entrypoint:

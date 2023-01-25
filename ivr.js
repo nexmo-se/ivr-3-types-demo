@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Vonage } = require("@vonage/server-sdk");
-const { NCCOBuilder, Talk, OutboundCallWithNCCO } = require('@vonage/voice')
+const { OutboundCallWithNCCO } = require('@vonage/voice')
 const express = require('express');
 const cors = require('cors');
 const join = require('path').join;
@@ -9,10 +9,9 @@ const logger = require('morgan');
 const app = express();
 const port = process.env.NERU_APP_PORT || process.env.PORT;
 const Vonage_API_KEY = process.env.API_ACCOUNT_ID || process.env.API_KEY;
-const Vonage_PRIVATE_KEY = process.env.PRIVATE_KEY || process.env.VONAGE_PRIVATE_KEY;
+const Vonage_PRIVATE_KEY = process.env.PRIVATE_KEY_PATH || process.env.VONAGE_PRIVATE_KEY;
 const Vonage_APPLICATION_ID = process.env.API_APPLICATION_ID || process.env.APPLICATION_ID;
-const enabled_local_tunnel = process.env.ENABLE_LOCAL_TUNNEL
-const localtunnel = require('localtunnel');
+const Vonage_API_SECRET = process.env.API_SECRET;
 const { DTMFHandler } = require('./dtmfhandler');
 const { ASRHandler } = require('./asrhandler');
 const dtmfhandler = new DTMFHandler()
@@ -66,12 +65,24 @@ ai_ncco = (hostUrl) => {
   ]
 }
 
-console.log(Vonage_API_KEY, Vonage_APPLICATION_ID, Vonage_PRIVATE_KEY)
+console.log(Vonage_API_KEY, Vonage_API_SECRET, Vonage_APPLICATION_ID, Vonage_PRIVATE_KEY)
 const vonage = new Vonage({
   apiKey: Vonage_API_KEY,
   applicationId: Vonage_APPLICATION_ID,
+  apiSecret: Vonage_API_SECRET,
   privateKey: Vonage_PRIVATE_KEY
+
 }, { debug: true });
+console.log(">><<",vonage.voice.createOutboundCall)
+vonage.accounts.getBalance(async (err, result) => {
+    if (!err) {
+        //Valid API Secret, Let's go
+        console.log(">>",result)
+    } else {
+        console.log(err)
+    }
+  });
+
 
 app.get('/_/health', async (req, res) => {
   res.sendStatus(200);
@@ -111,6 +122,7 @@ app.post('/dtmf', async (req, res) => {
     return res.status(200).json({ "result": "success" })
   })
     .catch((err) => {
+      console.log("ERR",err)
       return res.status(400).json({ "result": "fail", "message": err })
     });
   console.log(resp);
