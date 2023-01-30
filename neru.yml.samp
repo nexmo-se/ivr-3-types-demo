@@ -11,6 +11,7 @@ instance:
           value: <API_SECRET>
         - name: PRIVATE_KEY_PATH
           value: ./private.key
+    entrypoint: [node, ivr.js]
 debug:
     name: debug
     entrypoint:
