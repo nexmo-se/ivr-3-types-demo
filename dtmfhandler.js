@@ -10,19 +10,14 @@ function getHost(req) {
 }
 
 function DTMFHandler() {
+    this.text = "For Accounting, press 1. For Sales, press 2. for Engineering, Press 3. To Repeat this menu, press 0. Hangup to end."
     this.router = express.Router();
-    this.start_ncco = (hostUrl) => {
+    this.menu_ncco = (text, hostUrl) => {
+        console.log("*****")
         return [
             {
                 "action": "talk",
-                "text": "Welcome to Employee Search.",
-                "language": "en-US",
-                "style": 2,
-                "bargeIn": false
-            },
-            {
-                "action": "talk",
-                "text": "For Accounting, press 1. For Sales, press 2. for Engineering, Press 3. To Repeat this menu, press 0.",
+                "text": text,
                 "language": "en-US",
                 "style": 2,
                 "bargeIn": true
@@ -121,14 +116,15 @@ function DTMFHandler() {
     this.router.post("/initial_event", async (req, res, next) => {
         console.log("dtmfevent", req.body)
         event = req.body
+       
         if (event.dtmf.digits == '') {
-            return res.json(this.no_reply_ncco())
+            return res.json(this.menu_ncco(this.text, getHost(req)))
         }
         if (parseInt(event.dtmf.digits) > 3 || isNaN(parseInt(event.dtmf.digits))) {
-            return res.json(this.invalid_ncco())
+            return res.json(this.menu_ncco("We do not have that department. "+this.text, getHost(req)))
         }
         if (parseInt(event.dtmf.digits) == 0) {
-            return res.json(this.start_ncco(getHost(req)))
+            return res.json(this.menu_ncco(this.text, getHost(req)))
         }
 
         return res.json(this.get_id_ncco(getHost(req), parseInt(event.dtmf.digits)))
@@ -141,7 +137,7 @@ function DTMFHandler() {
         employee = employee_data[section].find(e => e.id == event.dtmf.digits)
         console.log(employee)
         if (employee == undefined) {
-            return res.json(this.employee_not_found_ncco())
+            return res.json(this.menu_ncco("That employee I.D. does not exist. "+this.text, getHost(req)))
         } else {
             return res.json(this.employee_found_ncco(employee))
         }

@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { Vonage } = require("@vonage/server-sdk");
+const { CallWithNCCO } = require('@vonage/voice')
 const { OutboundCallWithNCCO } = require('@vonage/voice')
 const express = require('express');
 const cors = require('cors');
@@ -14,10 +15,11 @@ const Vonage_APPLICATION_ID = process.env.API_APPLICATION_ID || process.env.APPL
 const Vonage_API_SECRET = process.env.API_SECRET;
 const { DTMFHandler } = require('./dtmfhandler');
 const { ASRHandler } = require('./asrhandler');
+const { callbackify } = require('util');
 const dtmfhandler = new DTMFHandler()
 const asrhandler = new ASRHandler()
 
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.set('view engine', 'ejs');
 app.use(cors());
 app.use(express.json());
@@ -54,7 +56,7 @@ ai_ncco = (hostUrl) => {
       "action": "connect",
       "eventUrl": [hostUrl + "/ai_event"],
       "timeout": "45",
-      "from": "447700900000",
+      "from": "12012524067",
       "endpoint": [
         {
           "type": "phone",
@@ -106,7 +108,7 @@ app.post('/ai_event', (req, res) => {
 });
 
 app.post('/dtmf', async (req, res) => {
-  console.log("dtmf", req.body)
+  //console.log("dtmf", req.body)
   if (!req.body.number) {
     res.status(400).send('Number Param missing');
     return
@@ -114,9 +116,9 @@ app.post('/dtmf', async (req, res) => {
   number = String(req.body.number).replace("+", "")
   const resp = await vonage.voice.createOutboundCall(
     new OutboundCallWithNCCO(
-      dtmfhandler.start_ncco(getHost(req)),
+      dtmfhandler.menu_ncco(dtmfhandler.text, getHost(req)),
       { type: 'phone', number: number },
-      { type: 'phone', number: "6598629555" }
+      { type: 'phone', number: "12013711764" }
     )
   ).then((r) => {
     return res.status(200).json({ "result": "success" })
@@ -129,7 +131,7 @@ app.post('/dtmf', async (req, res) => {
 });
 
 app.post('/asr', async (req, res) => {
-  console.log("dtmf", req.body)
+  console.log("asr", req.body)
   if (!req.body.number) {
     res.status(400).send('Number Param missing');
     return
@@ -137,9 +139,9 @@ app.post('/asr', async (req, res) => {
   number = String(req.body.number).replace("+", "")
   const resp = await vonage.voice.createOutboundCall(
     new OutboundCallWithNCCO(
-      asrhandler.start_ncco(getHost(req)),
+      asrhandler.menu_ncco("Welcome to employee search. "+asrhandler.text,getHost(req)),
       { type: 'phone', number: number },
-      { type: 'phone', number: "6598629555" }
+      { type: 'phone', number: "12013711764" }
     )
   ).then((r) => {
     return res.status(200).json({ "result": "success" })
@@ -167,7 +169,7 @@ app.post('/ai', async (req, res) => {
     new OutboundCallWithNCCO(
       ai_ncco(getHost(req)),
       { type: 'phone', number: number },
-      { type: 'phone', number: "6598629555" }
+      { type: 'phone', number: "12013711764" }
     )
   ).then((r) => {
     return res.status(200).json({ "result": "success" })
